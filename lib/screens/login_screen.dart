@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'register_screen.dart';
+import '../core/user_session.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -82,10 +83,7 @@ class LoginScreen extends StatelessWidget {
               // EMAIL
               const Align(
                 alignment: Alignment.centerLeft,
-                child: Text(
-                  "Email",
-                  style: TextStyle(color: Colors.white),
-                ),
+                child: Text("Email", style: TextStyle(color: Colors.white)),
               ),
 
               const SizedBox(height: 5),
@@ -108,10 +106,7 @@ class LoginScreen extends StatelessWidget {
               // SENHA
               const Align(
                 alignment: Alignment.centerLeft,
-                child: Text(
-                  "Senha",
-                  style: TextStyle(color: Colors.white),
-                ),
+                child: Text("Senha", style: TextStyle(color: Colors.white)),
               ),
 
               const SizedBox(height: 5),
@@ -152,7 +147,18 @@ class LoginScreen extends StatelessWidget {
               InkWell(
                 borderRadius: BorderRadius.circular(12),
                 onTap: () {
-                  // lógica de login aqui depois
+                  if (UserSession.userType == "cliente") {
+                    Navigator.pushReplacementNamed(context, '/homeCliente');
+                  } else if (UserSession.userType == "comerciante") {
+                    Navigator.pushReplacementNamed(context, '/homeComerciante');
+                  } else {
+                    // caso dê algum bug (não escolheu tipo)
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Erro: tipo de usuário não definido"),
+                      ),
+                    );
+                  }
                 },
                 child: Container(
                   width: double.infinity,
