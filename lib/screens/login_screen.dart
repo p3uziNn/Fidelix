@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -15,21 +16,19 @@ class LoginScreen extends StatelessWidget {
               const SizedBox(height: 40),
 
               // LOGO
-      Center(
-  child: Image.asset(
-    'assets/logofidelix.png',
-    width: MediaQuery.of(context).size.width * 0.6,
-  ),
-),
-
-              const SizedBox(height: 10),
-
+              Center(
+                child: Image.asset(
+                  'assets/logofidelix.png',
+                  width: MediaQuery.of(context).size.width * 0.6,
+                ),
+              ),
 
               const SizedBox(height: 30),
 
               // BOTÕES ENTRAR / CADASTRAR
               Row(
                 children: [
+                  // ENTRAR (ativo)
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -45,18 +44,32 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+
                   const SizedBox(width: 10),
+
+                  // CADASTRAR (CLICÁVEL)
                   Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[800],
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          "Cadastrar",
-                          style: TextStyle(color: Colors.white),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const RegisterScreen(),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[800],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            "Cadastrar",
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
                       ),
                     ),
@@ -81,7 +94,7 @@ class LoginScreen extends StatelessWidget {
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   hintText: "Seu@email.com",
-                  hintStyle: TextStyle(color: Colors.grey[600]),
+                  hintStyle: TextStyle(color: Colors.grey),
                   filled: true,
                   fillColor: Colors.black,
                   border: OutlineInputBorder(
@@ -108,7 +121,7 @@ class LoginScreen extends StatelessWidget {
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   hintText: "••••••••",
-                  hintStyle: TextStyle(color: Colors.grey[600]),
+                  hintStyle: TextStyle(color: Colors.grey),
                   filled: true,
                   fillColor: Colors.black,
                   border: OutlineInputBorder(
@@ -122,28 +135,39 @@ class LoginScreen extends StatelessWidget {
               // ESQUECEU SENHA
               Align(
                 alignment: Alignment.centerRight,
-                child: Text(
-                  "Esqueceu a senha?",
-                  style: TextStyle(color: Color(0xFFD4A373)),
+                child: GestureDetector(
+                  onTap: () {
+                    // futuramente reset senha
+                  },
+                  child: const Text(
+                    "Esqueceu a senha?",
+                    style: TextStyle(color: Color(0xFFD4A373)),
+                  ),
                 ),
               ),
 
               const SizedBox(height: 30),
 
-              // BOTÃO ENTRAR
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD4A373),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Center(
-                  child: Text(
-                    "Entrar",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
+              // BOTÃO ENTRAR (CLICÁVEL)
+              InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () {
+                  // lógica de login aqui depois
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD4A373),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      "Entrar",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -151,19 +175,29 @@ class LoginScreen extends StatelessWidget {
 
               const Spacer(),
 
-              // CADASTRAR
-              RichText(
-                text: const TextSpan(
-                  children: [
-                    TextSpan(
-                      text: "Não tem conta? ",
-                      style: TextStyle(color: Colors.grey),
+              // CADASTRE-SE (CLICÁVEL)
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const RegisterScreen(),
                     ),
-                    TextSpan(
-                      text: "Cadastre-se",
-                      style: TextStyle(color: Color(0xFFD4A373)),
-                    ),
-                  ],
+                  );
+                },
+                child: RichText(
+                  text: const TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "Não tem conta? ",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      TextSpan(
+                        text: "Cadastre-se",
+                        style: TextStyle(color: Color(0xFFD4A373)),
+                      ),
+                    ],
+                  ),
                 ),
               ),
 

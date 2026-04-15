@@ -12,7 +12,7 @@ class MeuApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: LoginScreen(), // 👈 AQUI chama sua tela
+      home: LoginScreen(),
     );
   }
 }
