@@ -1,9 +1,28 @@
-
 import 'package:flutter/material.dart';
 import '../core/user_session.dart';
+import '../core/database_helper.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
+
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  // 🔥 Controllers para capturar o texto dos inputs
+  final TextEditingController nomeController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController senhaController = TextEditingController();
+
+  @override
+  void dispose() {
+    // Limpeza dos controllers ao fechar a tela
+    nomeController.dispose();
+    emailController.dispose();
+    senhaController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,17 +42,13 @@ class RegisterScreen extends StatelessWidget {
               child: Column(
                 children: [
                   const SizedBox(height: 40),
-
-                  // LOGO
                   Image.asset(
                     'assets/logofidelix.png',
                     width: 120,
                     errorBuilder: (context, error, stackTrace) =>
                         const Icon(Icons.stars, color: fidelixGold, size: 80),
                   ),
-
                   const SizedBox(height: 15),
-
                   const Text(
                     "Fidelix",
                     style: TextStyle(
@@ -42,12 +57,10 @@ class RegisterScreen extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const Text(
                     "Fidelidade digital para seu negócio",
                     style: TextStyle(color: Colors.white70, fontSize: 14),
                   ),
-
                   const SizedBox(height: 30),
 
                   // SWITCH LOGIN/CADASTRO
@@ -63,13 +76,9 @@ class RegisterScreen extends StatelessWidget {
                           child: GestureDetector(
                             onTap: () => Navigator.pop(context),
                             child: Container(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 12),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
                               alignment: Alignment.center,
-                              child: const Text(
-                                "Entrar",
-                                style: TextStyle(color: Colors.white),
-                              ),
+                              child: const Text("Entrar", style: TextStyle(color: Colors.white)),
                             ),
                           ),
                         ),
@@ -83,10 +92,7 @@ class RegisterScreen extends StatelessWidget {
                             alignment: Alignment.center,
                             child: const Text(
                               "Cadastrar",
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -96,9 +102,10 @@ class RegisterScreen extends StatelessWidget {
 
                   const SizedBox(height: 30),
 
-                  buildInput("Nome completo", "Seu nome"),
-                  buildInput("Email", "seu@email.com"),
-                  buildInput("Senha", "••••••••", obscure: true),
+                  // Inputs usando os controllers
+                  buildInput("Nome completo", "Seu nome", nomeController),
+                  buildInput("Email", "seu@email.com", emailController),
+                  buildInput("Senha", "••••••••", senhaController, obscure: true),
 
                   const SizedBox(height: 20),
 
@@ -107,44 +114,40 @@ class RegisterScreen extends StatelessWidget {
                     width: double.infinity,
                     height: 55,
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
+                        String nome = nomeController.text;
+                        String email = emailController.text;
+                        String senha = senhaController.text;
                         String? type = UserSession.userType;
 
-                        if (type == "cliente") {
-                          Navigator.pushReplacementNamed(
-                              context, '/homeCliente');
-                        } else if (type == "comerciante") {
-                          Navigator.pushReplacementNamed(
-                              context, '/homeComerciante');
+                        if (nome.isNotEmpty && email.isNotEmpty && senha.isNotEmpty && type != null) {
+                          // Chama o SQLite
+                          await DatabaseHelper().registerUser(nome, email, senha, type);
+                          
+                          if (mounted) {
+                            Navigator.pushReplacementNamed(
+                              context,
+                              type == "cliente" ? '/homeCliente' : '/homeComerciante',
+                            );
+                          }
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                  "Erro: tipo de usuário não definido"),
-                            ),
+                            const SnackBar(content: Text("Preencha todos os campos!")),
                           );
                         }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: fidelixGold,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       child: const Text(
                         "Criar conta",
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                     ),
                   ),
 
                   const Spacer(),
-
-                  // VOLTAR PRO LOGIN
                   TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: const Text.rich(
@@ -154,16 +157,12 @@ class RegisterScreen extends StatelessWidget {
                         children: [
                           TextSpan(
                             text: "Faça login",
-                            style: TextStyle(
-                              color: fidelixGold,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: TextStyle(color: fidelixGold, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 20),
                 ],
               ),
@@ -174,19 +173,15 @@ class RegisterScreen extends StatelessWidget {
     );
   }
 
-  Widget buildInput(String label, String hint, {bool obscure = false}) {
+  // Helper de input atualizado para receber o controller
+  Widget buildInput(String label, String hint, TextEditingController controller, {bool obscure = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+        Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
         const SizedBox(height: 8),
         TextField(
+          controller: controller, // 🔥 Link com o controller
           obscureText: obscure,
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
@@ -194,8 +189,7 @@ class RegisterScreen extends StatelessWidget {
             hintStyle: const TextStyle(color: Colors.white24),
             filled: true,
             fillColor: const Color(0xFF121212),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Colors.white10),
@@ -211,4 +205,3 @@ class RegisterScreen extends StatelessWidget {
     );
   }
 }
-

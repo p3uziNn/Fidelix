@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'scanner_screen.dart';
 
 class HomeComercianteScreen extends StatelessWidget {
   const HomeComercianteScreen({super.key});
@@ -10,7 +11,6 @@ class HomeComercianteScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.black,
-
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -49,16 +49,24 @@ class HomeComercianteScreen extends StatelessWidget {
                       icon: Icons.add,
                       title: "Adicionar Pontos",
                       color: green,
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const ScannerScreen()),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(width: 10),
+                  // 🔥 Adicionei o card de clientes que estava faltando fechar
                   Expanded(
                     child: _actionCard(
                       icon: Icons.group,
                       title: "Ver Clientes",
                       color: gold,
-                      onTap: () {},
+                      onTap: () {
+                        // Implementação futura
+                      },
                     ),
                   ),
                 ],
@@ -162,16 +170,11 @@ class HomeComercianteScreen extends StatelessWidget {
   }
 }
 
-// 📊 CARD DE MÉTRICA
+// 📊 CLASSES AUXILIARES (MetricCard e ActivityTile continuam iguais abaixo)
 class MetricCard extends StatelessWidget {
   final String title;
   final String value;
-
-  const MetricCard({
-    super.key,
-    required this.title,
-    required this.value,
-  });
+  const MetricCard({super.key, required this.title, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -187,64 +190,39 @@ class MetricCard extends StatelessWidget {
         children: [
           Text(title, style: const TextStyle(color: Colors.white70)),
           const SizedBox(height: 10),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          Text(value, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
         ],
       ),
     );
   }
 }
 
-// 🕒 ATIVIDADE
 class ActivityTile extends StatelessWidget {
   final String nome;
   final String descricao;
   final String tempo;
-
-  const ActivityTile({
-    super.key,
-    required this.nome,
-    required this.descricao,
-    required this.tempo,
-  });
+  const ActivityTile({super.key, required this.nome, required this.descricao, required this.tempo});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(15),
-      ),
+      decoration: BoxDecoration(color: Colors.grey[900], borderRadius: BorderRadius.circular(15)),
       child: Row(
         children: [
-          const CircleAvatar(
-            backgroundColor: Color(0xFF00704A),
-            child: Icon(Icons.trending_up, color: Colors.white),
-          ),
+          const CircleAvatar(backgroundColor: Color(0xFF00704A), child: Icon(Icons.trending_up, color: Colors.white)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(nome,
-                    style: const TextStyle(color: Colors.white)),
-                Text(descricao,
-                    style: const TextStyle(color: Colors.white70)),
+                Text(nome, style: const TextStyle(color: Colors.white)),
+                Text(descricao, style: const TextStyle(color: Colors.white70)),
               ],
             ),
           ),
-          Text(
-            tempo,
-            style: const TextStyle(color: Colors.white38, fontSize: 12),
-          ),
+          Text(tempo, style: const TextStyle(color: Colors.white38, fontSize: 12)),
         ],
       ),
     );
