@@ -1,15 +1,83 @@
 import 'package:flutter/material.dart';
 import 'register_screen.dart';
 import '../core/user_session.dart';
-class LoginScreen extends StatelessWidget {
+import '../core/database_helper.dart';
+
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _senhaController = TextEditingController();
+  bool _isLoading = false;
+
+  static const _gold = Color(0xFFD4A373);
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _senhaController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final senha = _senhaController.text;
+
+    if (email.isEmpty || senha.isEmpty) {
+      _showSnack("Preencha e-mail e senha.");
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final user = await DatabaseHelper().loginUser(email, senha);
+
+      if (!mounted) return;
+
+      if (user == null) {
+        _showSnack("E-mail ou senha incorretos.");
+        return;
+      }
+
+      // Salva a sessão com os dados vindos do banco
+      UserSession.save(
+        id: user['id'] as int,
+        nome: user['nome'] as String,
+        tipo: user['tipo'] as String,
+      );
+
+      final route = UserSession.userType == 'cliente'
+          ? '/homeCliente'
+          : '/homeComerciante';
+
+      Navigator.pushReplacementNamed(context, route);
+    } catch (e) {
+      _showSnack("Erro inesperado. Tente novamente.");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showSnack(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), backgroundColor: Colors.red.shade700),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      // Garante que o layout sobe quando o teclado aparece
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
@@ -20,12 +88,14 @@ class LoginScreen extends StatelessWidget {
                 child: Image.asset(
                   'assets/logofidelix.png',
                   width: MediaQuery.of(context).size.width * 0.6,
+                  errorBuilder: (_, __, ___) =>
+                      const Icon(Icons.stars, color: _gold, size: 80),
                 ),
               ),
 
               const SizedBox(height: 30),
 
-              // BOTÕES ENTRAR / CADASTRAR
+              // SWITCH ENTRAR / CADASTRAR
               Row(
                 children: [
                   // ENTRAR (ativo)
@@ -33,13 +103,16 @@ class LoginScreen extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFD4A373),
+                        color: _gold,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Center(
                         child: Text(
                           "Entrar",
-                          style: TextStyle(color: Colors.black),
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -47,18 +120,16 @@ class LoginScreen extends StatelessWidget {
 
                   const SizedBox(width: 10),
 
-                  // CADASTRAR (CLICÁVEL)
+                  // CADASTRAR
                   Expanded(
                     child: InkWell(
                       borderRadius: BorderRadius.circular(10),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const RegisterScreen(),
-                          ),
-                        );
-                      },
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const RegisterScreen(),
+                        ),
+                      ),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
@@ -77,51 +148,26 @@ class LoginScreen extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 25),
+              const SizedBox(height: 30),
 
               // EMAIL
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text("Email", style: TextStyle(color: Colors.white)),
-              ),
-
-              const SizedBox(height: 5),
-
-              TextField(
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: "Seu@email.com",
-                  hintStyle: TextStyle(color: Colors.grey),
-                  filled: true,
-                  fillColor: Colors.black,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
+              _buildLabel("Email"),
+              const SizedBox(height: 6),
+              _buildTextField(
+                controller: _emailController,
+                hint: "seu@email.com",
+                keyboardType: TextInputType.emailAddress,
               ),
 
               const SizedBox(height: 15),
 
               // SENHA
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text("Senha", style: TextStyle(color: Colors.white)),
-              ),
-
-              const SizedBox(height: 5),
-
-              TextField(
-                obscureText: true,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: "••••••••",
-                  hintStyle: TextStyle(color: Colors.grey),
-                  filled: true,
-                  fillColor: Colors.black,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
+              _buildLabel("Senha"),
+              const SizedBox(height: 6),
+              _buildTextField(
+                controller: _senhaController,
+                hint: "••••••••",
+                obscure: true,
               ),
 
               const SizedBox(height: 8),
@@ -131,65 +177,57 @@ class LoginScreen extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: GestureDetector(
                   onTap: () {
-                    // futuramente reset senha
+                    // TODO: implementar reset de senha
                   },
                   child: const Text(
                     "Esqueceu a senha?",
-                    style: TextStyle(color: Color(0xFFD4A373)),
+                    style: TextStyle(color: _gold),
                   ),
                 ),
               ),
 
               const SizedBox(height: 30),
 
-              // BOTÃO ENTRAR (CLICÁVEL)
-              InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () {
-                  if (UserSession.userType == "cliente") {
-                    Navigator.pushReplacementNamed(context, '/homeCliente');
-                  } else if (UserSession.userType == "comerciante") {
-                    Navigator.pushReplacementNamed(context, '/homeComerciante');
-                  } else {
-                    // caso dê algum bug (não escolheu tipo)
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Erro: tipo de usuário não definido"),
-                      ),
-                    );
-                  }
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD4A373),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      "Entrar",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                      ),
+              // BOTÃO ENTRAR
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _handleLogin,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _gold,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.black,
+                          ),
+                        )
+                      : const Text(
+                          "Entrar",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
                 ),
               ),
 
-              const Spacer(),
+              const SizedBox(height: 30),
 
-              // CADASTRE-SE (CLICÁVEL)
+              // CADASTRE-SE
               GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const RegisterScreen(),
-                    ),
-                  );
-                },
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                ),
                 child: RichText(
                   text: const TextSpan(
                     children: [
@@ -199,16 +237,51 @@ class LoginScreen extends StatelessWidget {
                       ),
                       TextSpan(
                         text: "Cadastre-se",
-                        style: TextStyle(color: Color(0xFFD4A373)),
+                        style: TextStyle(color: _gold),
                       ),
                     ],
                   ),
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 30),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLabel(String text) => Align(
+        alignment: Alignment.centerLeft,
+        child: Text(text, style: const TextStyle(color: Colors.white)),
+      );
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hint,
+    bool obscure = false,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return TextField(
+      controller: controller,
+      obscureText: obscure,
+      keyboardType: keyboardType,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.grey),
+        filled: true,
+        fillColor: const Color(0xFF121212),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.white10),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: _gold),
         ),
       ),
     );

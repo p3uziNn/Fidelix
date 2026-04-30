@@ -15,15 +15,21 @@ class MeuApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      title: 'Fidelix',
 
-      // tela inicial
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: Colors.black,
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFFD4A574),
+          secondary: Color(0xFF00704A),
+        ),
+      ),
+
       initialRoute: '/userType',
 
       routes: {
         '/userType': (context) => const UserTypeScreen(),
         '/login': (context) => const LoginScreen(),
-
-        // 🔥 AGORA SIM ATIVAS
         '/homeCliente': (context) => const HomeClienteScreen(),
         '/homeComerciante': (context) => const HomeComercianteScreen(),
       },

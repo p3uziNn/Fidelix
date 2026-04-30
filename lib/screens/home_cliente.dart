@@ -1,22 +1,43 @@
 import 'package:flutter/material.dart';
+import '../core/user_session.dart';
+import '../core/database_helper.dart';
 
-class HomeClienteScreen extends StatelessWidget {
+class HomeClienteScreen extends StatefulWidget {
   const HomeClienteScreen({super.key});
 
   @override
+  State<HomeClienteScreen> createState() => _HomeClienteScreenState();
+}
+
+class _HomeClienteScreenState extends State<HomeClienteScreen> {
+  static const _gold = Color(0xFFD4A574);
+  static const _green = Color(0xFF00704A);
+  static const int _meta = 50;
+
+  int _currentIndex = 0;
+  int _pontos = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPoints();
+  }
+
+  Future<void> _loadPoints() async {
+    final id = UserSession.userId;
+    if (id == null) return;
+    final pts = await DatabaseHelper().getPoints(id);
+    if (mounted) setState(() => _pontos = pts);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    const gold = Color(0xFFD4A574);
-    const green = Color(0xFF00704A);
-
-    // 🔥 dados mock (depois vem Firebase)
-    int pontos = 47;
-    int meta = 50;
-
-    double progresso = pontos / meta;
+    final nome = UserSession.userName ?? 'Usuário';
+    final progresso = (_pontos / _meta).clamp(0.0, 1.0);
 
     return Scaffold(
       backgroundColor: Colors.black,
-
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -25,15 +46,14 @@ class HomeClienteScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 20),
 
-              // 👋 HEADER
+              // HEADER
               const Text(
                 "Olá,",
                 style: TextStyle(color: Colors.white70, fontSize: 16),
               ),
-
-              const Text(
-                "Maria Silva",
-                style: TextStyle(
+              Text(
+                nome,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
@@ -42,11 +62,12 @@ class HomeClienteScreen extends StatelessWidget {
 
               const SizedBox(height: 25),
 
-              // 🪙 CARD DE PONTOS
+              // CARD DE PONTOS
               Container(
+                width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: gold,
+                  color: _gold,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(
@@ -56,27 +77,21 @@ class HomeClienteScreen extends StatelessWidget {
                       "Seus Pontos",
                       style: TextStyle(color: Colors.black87),
                     ),
-
                     const SizedBox(height: 10),
-
                     Text(
-                      "$pontos",
+                      "$_pontos",
                       style: const TextStyle(
                         color: Colors.black,
                         fontSize: 40,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-
                     const SizedBox(height: 10),
-
-                    const Text(
-                      "Próxima recompensa",
-                      style: TextStyle(color: Colors.black54),
+                    Text(
+                      "Próxima recompensa em ${(_meta - _pontos).clamp(0, _meta)} pts",
+                      style: const TextStyle(color: Colors.black54),
                     ),
-
                     const SizedBox(height: 6),
-
                     LinearProgressIndicator(
                       value: progresso,
                       backgroundColor: Colors.black12,
@@ -89,7 +104,7 @@ class HomeClienteScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // 📊 CARDS MENORES
+              // CARDS MENORES
               Row(
                 children: [
                   Expanded(
@@ -97,7 +112,7 @@ class HomeClienteScreen extends StatelessWidget {
                       title: "Este mês",
                       value: "+23",
                       subtitle: "pontos ganhos",
-                      color: green,
+                      color: _green,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -106,7 +121,7 @@ class HomeClienteScreen extends StatelessWidget {
                       title: "Resgates",
                       value: "3",
                       subtitle: "recompensas",
-                      color: gold,
+                      color: _gold,
                     ),
                   ),
                 ],
@@ -114,11 +129,9 @@ class HomeClienteScreen extends StatelessWidget {
 
               const SizedBox(height: 25),
 
-              // 🎁 RECOMPENSAS
+              // RECOMPENSAS
               _sectionTitle("Recompensas em Destaque"),
-
               const SizedBox(height: 15),
-
               SizedBox(
                 height: 140,
                 child: ListView(
@@ -133,11 +146,9 @@ class HomeClienteScreen extends StatelessWidget {
 
               const SizedBox(height: 25),
 
-              // 🏪 LOJAS
+              // LOJAS
               _sectionTitle("Estabelecimentos Parceiros"),
-
               const SizedBox(height: 15),
-
               Container(
                 height: 100,
                 decoration: BoxDecoration(
@@ -158,17 +169,20 @@ class HomeClienteScreen extends StatelessWidget {
         ),
       ),
 
-      // 🔥 BOTTOM NAV
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.black,
-        selectedItemColor: gold,
+        selectedItemColor: _gold,
         unselectedItemColor: Colors.white54,
         type: BottomNavigationBarType.fixed,
+        currentIndex: _currentIndex,
+        onTap: (i) => setState(() => _currentIndex = i),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Início"),
           BottomNavigationBarItem(icon: Icon(Icons.store), label: "Lojas"),
-          BottomNavigationBarItem(icon: Icon(Icons.card_giftcard), label: "Prêmios"),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: "Histórico"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.card_giftcard), label: "Prêmios"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.history), label: "Histórico"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Perfil"),
         ],
       ),
@@ -219,25 +233,17 @@ class HomeClienteScreen extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        const Text(
-          "Ver todos",
-          style: TextStyle(color: Color(0xFFD4A574)),
-        )
+        const Text("Ver todos", style: TextStyle(color: _gold)),
       ],
     );
   }
 }
 
-// 🎁 CARD DE RECOMPENSA
 class RewardCard extends StatelessWidget {
   final String nome;
   final String pontos;
 
-  const RewardCard({
-    super.key,
-    required this.nome,
-    required this.pontos,
-  });
+  const RewardCard({super.key, required this.nome, required this.pontos});
 
   @override
   Widget build(BuildContext context) {
@@ -260,10 +266,7 @@ class RewardCard extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 5),
-          Text(
-            pontos,
-            style: const TextStyle(color: Color(0xFFD4A574)),
-          ),
+          Text(pontos, style: const TextStyle(color: Color(0xFFD4A574))),
         ],
       ),
     );
